@@ -386,6 +386,12 @@ public class XMLSchemaLoader implements SchemaLoader {
             //分表功能
             String subTables = tableElement.getAttribute("subTables");
 
+            boolean enableReadAlone = false;
+            //记录是否支持针对单表的读写分离
+            if (tableElement.hasAttribute("enableReadAlone")) {
+                enableReadAlone = Boolean.parseBoolean(tableElement.getAttribute("enableReadAlone"));
+            }
+
             for (int j = 0; j < tableNames.length; j++) {
 
                 String tableName = tableNames[j];
@@ -410,6 +416,7 @@ public class XMLSchemaLoader implements SchemaLoader {
                         getDbType(dataNode),
                         (tableRuleConfig != null) ? tableRuleConfig.getRule() : null,
                         ruleRequired, null, false, null, null, subTables, fetchStoreNodeByJdbc);
+                table.setEnableReadAlone(enableReadAlone);
                 //因为需要等待TableConfig构造完毕才可以拿到dataNode节点数量,所以Rule构造延后到此处 @cjw
                 if ((tableRuleConfig != null) && (tableRuleConfig.getRule().getRuleAlgorithm() instanceof TableRuleAware)) {
                     AbstractPartitionAlgorithm newRuleAlgorithm = tableRuleConfig.getRule().getRuleAlgorithm();
@@ -535,6 +542,10 @@ public class XMLSchemaLoader implements SchemaLoader {
             if (childTbElement.hasAttribute("needAddLimit")) {
                 needAddLimit = Boolean.parseBoolean(childTbElement.getAttribute("needAddLimit"));
             }
+            boolean enableReadAlone = false;
+            if (childTbElement.hasAttribute("enableReadAlone")) {
+                enableReadAlone = Boolean.parseBoolean(childTbElement.getAttribute("enableReadAlone"));
+            }
 
             String subTables = childTbElement.getAttribute("subTables");
             //子表join键，和对应的parent的键，父子表通过这个关联
@@ -545,6 +556,7 @@ public class XMLSchemaLoader implements SchemaLoader {
                     TableConfig.TYPE_GLOBAL_DEFAULT, dataNodes,
                     getDbType(dataNodes), null, false, parentTable, true,
                     joinKey, parentKey, subTables, false);
+            table.setEnableReadAlone(enableReadAlone);
 
             if (tables.containsKey(table.getName())) {
                 throw new ConfigException("table " + table.getName() + " duplicated!");

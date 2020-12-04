@@ -45,6 +45,12 @@ public class Table implements Named {
     @XmlAttribute
     protected String type;
 
+    /**
+     * 该属性需要配合balance="4"使用
+     */
+    @XmlAttribute
+    protected Boolean enableReadAlone;
+
     @XmlAttribute
     protected String subTables;
     /**
@@ -135,8 +141,15 @@ public class Table implements Named {
     public void setType(String type) {
         this.type = type;
     }
-    
-    
+
+    public Boolean getEnableReadAlone() {
+        return enableReadAlone;
+    }
+
+    public void setEnableReadAlone(Boolean enableReadAlone) {
+        this.enableReadAlone = enableReadAlone;
+    }
+
     public String getSubTables() {
 		return subTables;
 	}
@@ -166,6 +179,8 @@ public class Table implements Named {
         builder.append(needAddLimit);
         builder.append(", type=");
         builder.append(type);
+        builder.append(", enableReadAlone=");
+        builder.append(enableReadAlone);
         builder.append(", childTable=");
         builder.append(childTable);
         builder.append("]");

@@ -49,6 +49,7 @@ public class TableConfig {
     private final RuleConfig rule;
     private final String partitionColumn;
     private final boolean ruleRequired;
+    private boolean enableReadAlone = false; // 默认不对单表进行读写分离
     private final TableConfig parentTC;
     private final boolean childTable;
     private final String joinKey;
@@ -109,6 +110,7 @@ public class TableConfig {
         this.partitionColumn = (rule == null) ? null : rule.getColumn();
         partionKeyIsPrimaryKey = (partitionColumn == null) ? primaryKey == null : partitionColumn.equals(primaryKey);
         this.ruleRequired = ruleRequired;
+        this.enableReadAlone = enableReadAlone;
         this.childTable = isChildTable;
         this.parentTC = parentTC;
         this.joinKey = joinKey;
@@ -148,6 +150,14 @@ public class TableConfig {
 
     public boolean isGlobalTable() {
         return this.tableType == TableConfig.TYPE_GLOBAL_TABLE;
+    }
+
+    public boolean isEnableReadAlone() {
+        return enableReadAlone;
+    }
+
+    public void setEnableReadAlone(boolean enableReadAlone) {
+        this.enableReadAlone = enableReadAlone;
     }
 
     public String genLocateRootParentSQL() {

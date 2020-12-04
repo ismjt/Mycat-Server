@@ -34,20 +34,19 @@ import io.mycat.backend.loadbalance.WeightedRoundRobinLoadBalance;
 import io.mycat.backend.mysql.nio.handler.GetConnectionHandler;
 import io.mycat.backend.mysql.nio.handler.ResponseHandler;
 import io.mycat.config.Alarms;
+import io.mycat.config.MycatConfig;
 import io.mycat.config.loader.zkprocess.comm.ZkConfig;
 import io.mycat.config.loader.zkprocess.comm.ZkParamCfg;
 import io.mycat.config.model.DataHostConfig;
+import io.mycat.config.model.TableConfig;
+import io.mycat.route.RouteResultsetNode;
+import io.mycat.server.parser.ServerParse;
 import io.mycat.util.LogUtil;
 import io.mycat.util.ZKUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,6 +58,7 @@ public class PhysicalDBPool {
 	public static final int BALANCE_ALL_BACK = 1;
 	public static final int BALANCE_ALL = 2;
     public static final int BALANCE_ALL_READ = 3;
+	public static final int BALANCE_SOME_READ = 4;
 
 	public static final int RANDOM = 0;
 	public static final int WEIGHTED_ROUND_ROBIN = 1;
@@ -546,6 +546,20 @@ public class PhysicalDBPool {
             theNode = randomSelect(okSources);
             break;
         }
+		case BALANCE_SOME_READ: {
+			MycatConfig conf = MycatServer.getInstance().getConfig();
+			Map<String, TableConfig> tables = conf.getSchemas().get("TESTDB").getTables();
+			RouteResultsetNode rrs = (RouteResultsetNode) attachment;
+			List<String> ts = rrs.getSource().getTables();
+			if(tables.size() > 0 && ts != null && ts.size() > 0 && rrs.getSqlType() == ServerParse.SELECT && tables.get(ts.get(0)).isEnableReadAlone()){
+				// 根据schema中的table中的enableReadAlone值，判断是否需要单独对表进行读写分离
+				okSources = getAllActiveRWSources(false, false, checkSlaveSynStatus());
+				theNode = randomSelect(okSources);
+			} else {
+				theNode = this.getSource();
+			}
+			break;
+		}
 		case BALANCE_NONE:
 		default:
 			// return default write data source

@@ -27,6 +27,7 @@
 <!ATTLIST table name CDATA #REQUIRED>
 <!ATTLIST table nameSuffix CDATA #IMPLIED>
 <!ATTLIST table dataNode CDATA #REQUIRED>
+<!ATTLIST table enableReadAlone CDATA #IMPLIED>
 <!ATTLIST table rule NMTOKEN #IMPLIED>
 <!ATTLIST table ruleRequired NMTOKEN #IMPLIED>
 <!ATTLIST table primaryKey NMTOKEN #IMPLIED>
